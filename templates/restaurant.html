@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행 정보 모아보기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_add.css') }}">
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=my_key&libraries=places&callback=initMap" async defer></script>
+
+    <!-- Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        #result-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            height: 400px; /* 리스트 높이를 고정 */
+            overflow-y: auto; /* 세로 스크롤 추가 */
+            padding-right: 10px; /* 세로 스크롤바 때문에 공간 확보 */
+        }
+
+        .blog-card {
+            perspective: 1000px;
+            width: 300px;   /* 너비를 조금 더 늘림 */
+            min-height: 200px;  /* 최소 높이 설정 */
+            position: relative;
+            margin: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;  /* 내부 아이템을 세로로 배치 */
+            box-sizing: border-box;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* 콘텐츠가 늘어나도록 조정 */
+        }
+
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* 카드 앞뒤 모두 내용 위쪽 정렬 */
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .card-front {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            overflow: hidden;  /* 텍스트가 카드 밖으로 넘치지 않도록 */
+
+            display: flex;            /* Flexbox 사용 */
+            justify-content: center;  /* 가로 중앙 정렬 */
+            align-items: center;      /* 세로 중앙 정렬 */
+            text-align: center;       /* 텍스트 중앙 정렬 */
+            padding: 10px;            /* 패딩 추가 */
+        }
+
+
+        .card-front h3 {
+            font-size: 16px;
+            color: #333;
+            word-wrap: break-word;  /* 긴 단어가 잘리지 않도록 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 5px;
+        }
+
+        .card-front span {
+            font-size: 12px;
+            color: #555;
+            word-wrap: break-word;  /* 긴 단어가 잘리지 않도록 */
+        }
+
+        .card-back {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            transform: rotateY(180deg);
+
+            padding: 15px;
+            overflow-y: auto;  /* 세로 스크롤 추가 */
+            max-height: 200px; /* 카드 뒷면에 최대 높이 제한 */
+            box-sizing: border-box; /* padding을 포함하여 높이가 계산되도록 설정 */
+            flex: 1;  /* flex-grow 설정으로 카드 안 내용이 균등하게 채워지도록 */
+        }
+
+        .card-back a {
+            color: #4A84D4;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 10px;
+            word-wrap: break-word;  /* 긴 링크도 잘리지 않도록 */
+        }
+
+        .card-back a:hover {
+            text-decoration: underline;
+        }
+
+
+    </style>
+
+    <style>
+        /* h1 태그에 마우스를 올렸을 때 커서 변경 */
+        .header-box {
+            cursor: pointer;
+        }
+
+        /* 기본 스타일 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+        }
+
+        .link-container {
+            position: relative;          /* 위치 설정 가능 */
+            display: flex;               /* 가로로 나란히 배치 */
+            justify-content: flex-end;   /* 오른쪽 정렬 */
+            align-items: flex-end;       /* 캐릭터와 말풍선 하단 맞춤 */
+            margin: 20px;                /* header 아래 여백 */
+            overflow: visible;
+        }
+
+        /* 말풍선 스타일 */
+        .background {
+            position: relative;
+            background: #f0f0f0;         /* 말풍선 배경색 */
+            color: #333;                 /* 텍스트 색상 */
+            padding: 15px 20px;          /* 텍스트 여백 */
+            border-radius: 10px;         /* 둥근 모양 */
+            max-width: 450px;            /* 말풍선 최대 너비 */
+            margin-right: 20px;          /* 캐릭터와 간격 */
+            text-align: center;          /* 텍스트 가운데 정렬 */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 말풍선 꼬리 */
+        .background::after {
+            content: '';
+            position: absolute;
+            right: -20px;               /* 꼬리가 말풍선 오른쪽에 위치 */
+            top: 60%;                   /* 말풍선 세로 중심 */
+            transform: translateY(-50%); /* 세로 중앙 정렬 */
+            width: 0;
+            height: 0;
+            border: 10px solid transparent; /* 투명한 삼각형 */
+            border-left-color: #f0f0f0;     /* 왼쪽을 향하는 꼬리의 색상 (말풍선 배경색) */
+        }
+
+
+        /* 캐릭터 스타일 */
+        .character {
+            width: 150px;                 /* 캐릭터 크기 */
+            height: auto;                /* 비율 유지 */
+            margin-right: 80px;
+        }
+    </style>
+
+    
+</head>
+<body>
+    <header>
+        <div class="header-icon">
+            <i class="fas fa-plane"></i> <!-- 예시 아이콘 -->
+        </div>
+
+        <div class="header-box">
+            <h1>여행 정보 모아보기</h1>
+        </div>
+        <script>
+            // JavaScript to handle click event
+            document.querySelector('.header-box').addEventListener('click', function () {
+                // Redirect to the index route using Flask's url_for
+                window.location.href = "{{ url_for('index') }}";
+            });
+        </script>
+    </header>
+
+    <div id="category-name">
+        <h3>음식점</h3>
+    </div>
+    <style>
+        #category-name {
+            text-align: center;               /* 텍스트를 수평 중앙 정렬 */
+            background-color: #ff81a3da;        /* 배경 색상 설정 */
+            /*padding: 2px;*/                    /* 여백을 추가하여 텍스트와 경계 사이의 공간을 확보 */
+            border-radius: 10px;              /* 모서리를 둥글게 설정 */
+            width: 150px;                     /* div 너비 설정 */
+            margin-left: 90px;
+            margin-top: 35px;
+            border: 2px solid #000000;
+        }
+    </style>
+
+
+
+    <div
+        id="tutorial-popup" class="tutorial-popup"
+        style="position: absolute; display: none; z-index: 9999; background: white; border: 1px solid #ccc; border-radius: 5px; padding: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: 300px;"
+        >
+        <p class="message" style="margin: 0; font-size: 14px; color: #333;"></p>
+        <video
+            class="tutorial-video"
+            style="width: 100%; margin-top: 10px; display: none; border-radius: 5px;"
+            autoplay muted playsinline
+        ></video>
+        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+            <button id="skip-tutorial" class="skip-button" style="padding: 5px 10px; background-color: #ff6f61; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                스킵
+            </button>
+            <button id="next-tutorial" class="next-button" style="padding: 5px 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                다음
+            </button>
+        </div>
+    </div>
+    <style>
+        .tutorial-popup {
+            position: absolute;
+            display: none; /* 기본적으로 숨김 */
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 320px; /* 팝업 기본 너비 */
+        }
+
+        .tutorial-popup .message {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 15px;
+            font-family: Arial, sans-serif;
+            text-align: center; /* 텍스트 중앙 정렬 */
+        }
+
+        .tutorial-popup .tutorial-video {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            background-color: #000; /* 비디오 배경색 */
+        }
+
+        .tutorial-popup .skip-button .next-button {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 15px;
+            font-size: 13px;
+            color: white;
+            background-color: #ff6f61; /* 기본 버튼 색상 */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            width: 100%; /* 버튼 가로 크기 확장 */
+        }
+
+        .tutorial-popup .skip-button:hover {
+            background-color: #ff4a3c; /* 호버 상태 색상 */
+        }
+
+
+
+
+    </style>
+
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); z-index: 9999; justify-content: center; align-items: center; text-align: center;">
+        <div style="font-size: 20px; color: #333;">로딩 중...</div>
+    </div>
+    
+
+    <main>
+        <section id="map-container">
+            <div id="map"></div>
+        </section>
+
+
+        <section id="info-container">
+            <div id="info-box">
+                <input type="text" id="search-input" placeholder="검색할 지역을 입력하세요">
+                <button id="search-button">검색</button>
+                <!-- <div id="loading-spinner" class="hidden">로딩 중...</div> -->
+                
+                <div id="filter-container" style="display:none; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+                    <label for="keyword-filter">검색필터를 선택하세요:</label>
+                    <select id="keyword-filter">
+                        <option value="영업시간">영업시간</option>
+                        <option value="맛">맛</option>
+                        <option value="위치">위치</option>
+                        <option value="가격">가격</option>
+                    </select>
+                    <button onclick="applyFilter()" id="filter-container button">필터</button>
+                </div>
+                
+                
+                <div id="result-links"></div>
+            </div>
+        </section>
+    </main>
+
+    <div class="link-container">
+        <div class="background">
+            <h3>다른 카테고리도 검색해보세요!</h3>
+            <p>
+                <span id="go-to-cafe" class="clickable-text">🍰카페</span>
+                <span id="go-to-attraction" class="clickable-text">🏛️관광지</span>
+            </p>            
+        </div>
+        <img src="{{ url_for('static', filename='source/tech.jpg') }}" alt="캐릭터 이미지" class="character">
+    </div>
+    
+    <style>
+        .clickable-text {
+            text-align: center;
+            cursor: pointer;             /* 클릭 가능한 커서 표시 */
+            color: black;                 /* 텍스트 색상 */
+            text-decoration: underline;  /* 밑줄 추가 */
+            font-size: 17px; 
+            margin-right: 20px; /* 오른쪽 공백 추가 */
+        }
+
+        .clickable-text:hover {
+            color: blue;             /* 호버 시 색상 변경 */
+        }
+
+    </style>    
+
+    <script>
+        document.getElementById('go-to-cafe').addEventListener('click', function () {
+            location.href = "{{ url_for('cafe') }}";
+        });
+
+        document.getElementById('go-to-attraction').addEventListener('click', function () {
+            location.href = "{{ url_for('attraction') }}";
+        });
+    </script>
+
+
+    <footer>
+        <p>서울과학기술대학교 인공지능응용학과</p>
+        <p>Email: <a href="mailto:uaua1595@seoultech.ac.kr">uaua1595@seoultech.ac.kr</a></p>
+    </footer>
+</body>
+
+<script defer src="{{ url_for('static', filename='js/scripts_res.js') }}" defer></script>
+
+</html>

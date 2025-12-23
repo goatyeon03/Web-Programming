@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행 정보 모아보기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script defer src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    
+
+    <!-- Font Awesome CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* 기본 스타일 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 캐릭터와 말풍선 컨테이너 */
+    .speech-character-container {
+        position: relative;          /* 위치 설정 가능 */
+        display: flex;               /* 가로로 나란히 배치 */
+        justify-content: flex-end;   /* 오른쪽 정렬 */
+        align-items: flex-end;       /* 캐릭터와 말풍선 하단 맞춤 */
+        margin: 20px;                /* header 아래 여백 */
+        overflow: visible;
+    }
+
+    /* 말풍선 스타일 */
+    .speech-bubble {
+        position: relative;
+        background: #f0f0f0;         /* 말풍선 배경색 */
+        color: #333;                 /* 텍스트 색상 */
+        padding: 15px 20px;          /* 텍스트 여백 */
+        border-radius: 10px;         /* 둥근 모양 */
+        max-width: 450px;            /* 말풍선 최대 너비 */
+        margin-right: 20px;          /* 캐릭터와 간격 */
+        text-align: center;          /* 텍스트 가운데 정렬 */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 말풍선 꼬리 */
+    .speech-bubble::after {
+        content: '';
+        position: absolute;
+        right: -20px;               /* 꼬리가 말풍선 오른쪽에 위치 */
+        top: 60%;                   /* 말풍선 세로 중심 */
+        transform: translateY(-50%); /* 세로 중앙 정렬 */
+        width: 0;
+        height: 0;
+        border: 10px solid transparent; /* 투명한 삼각형 */
+        border-left-color: #f0f0f0;     /* 왼쪽을 향하는 꼬리의 색상 (말풍선 배경색) */
+    }
+
+
+    /* 캐릭터 스타일 */
+    .character {
+        width: 150px;                 /* 캐릭터 크기 */
+        height: auto;                /* 비율 유지 */
+        margin-right: 50px;
+    }
+    
+        /* 타일 컨테이너 - 화면 가로 중앙 정렬 */
+        .tiles-container {
+            display: flex;                  /* Flexbox 활성화 */
+            justify-content: center;        /* 가로 중앙 정렬 */
+            align-items: center;           /* 세로 중앙 정렬 (필요 시) */
+            gap: 30px;                      /* 타일 간 간격 */
+            height: 100vh;                  /* 화면 전체 높이 */
+            width: 100%;                    /* 화면 전체 너비 */
+            /*margin-top: 50px; */
+            background-color: #81DAF5;
+        }
+
+        .tiles-container::before, .tiles-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px; /* 경계선의 두께 */
+            background-color: black; /* 경계선 색상 */
+        }
+
+        .tiles-container::before {
+            top: 0; /* 상단 경계선 */
+        }
+
+        .tiles-container::after {
+            bottom: 0; /* 하단 경계선 */
+        }
+    
+        /* 타일 스타일 */
+        .tile {
+            width: 400px;                   /* 타일 너비 */
+            height: 300px;                  /* 타일 높이 */
+            background-color: #f7f7f7;      
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .tile img {
+            width: 100%;
+            height: 70%;
+            object-fit: cover;
+        }
+        .tile h3 {
+            margin: 10px 0;
+            font-size: 22px;
+        }
+        .tile p {
+            margin: 0 10px 10px;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+    
+    
+</head>
+<body>
+    <header>
+        <div class="header-icon">
+            <i class="fas fa-plane"></i> <!-- 예시 아이콘 -->
+        </div>
+
+        <div class="header-box">
+            <h1>여행 정보 모아보기</h1>
+        </div>
+    </header>
+
+    <!-- 캐릭터와 말풍선 -->
+    <div class="speech-character-container">
+        <div class="speech-bubble">
+            <p>
+                이 웹 사이트는 <b>여행지에 대한 실시간 정보</b>를 제공해드립니다.<br>
+                아래에서 관심 있는 카테고리를 선택해 탐색해 보세요!
+            </p>
+        </div>
+        <img src="{{ url_for('static', filename='source/tech.jpg') }}" alt="캐릭터 이미지" class="character">
+    </div>
+
+    <main>
+        <!-- 튜토리얼 팝업 -->
+        <div id="tutorial-popup" class="tutorial-popup hidden">
+            <div class="tutorial-content">
+                <p id="tutorial-text"></p>
+                <div class="tutorial-buttons">
+                    <button id="skip-tutorial">건너뛰기</button>
+                    <button id="next-tutorial">다음</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="tiles-container">
+            <!-- 카페 타일 -->
+            <a href="{{ url_for('cafe') }}" class="tile">
+                <img src="{{ url_for('static', filename='source/cafe.jpg') }}" alt="카페 이미지">
+                <h3>카페</h3>
+                <p>인기 있는 카페를 찾아보세요!</p>
+            </a>
+            <!-- 식당 타일 -->
+            <a href="{{ url_for('restaurant') }}" class="tile">
+                <img src="{{ url_for('static', filename='source/restaurant.jpg') }}" alt="식당 이미지">
+                <h3>식당</h3>
+                <p>맛집 리스트를 확인하세요!</p>
+            </a>
+            <!-- 관광지 타일 -->
+            <a href="{{ url_for('attraction') }}" class="tile">
+                <img src="{{ url_for('static', filename='source/attraction.png') }}" alt="관광지 이미지">
+                <h3>관광지</h3>
+                <p>유명 관광지를 탐험해보세요!</p>
+            </a>
+        </div>
+    </main>
+    <footer>
+        <p>서울과학기술대학교 인공지능응용학과</p>
+        <p>Email: <a href="mailto:uaua1595@seoultech.ac.kr">uaua1595@seoultech.ac.kr</a></p>
+    </footer>
+</body>
+</html>

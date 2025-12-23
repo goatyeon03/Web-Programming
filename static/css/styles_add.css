@@ -1,0 +1,192 @@
+/* 기본 스타일 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 헤더 스타일 */
+header {
+    height: 100px;
+    background-color: #F9F9F9;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 4px solid white; /* 하단 경계선 */
+
+    display: flex;              /* Flexbox 활성화 */
+    justify-content: center;    /* 가로 중앙 정렬 */
+    align-items: center;        /* 세로 중앙 정렬 */
+}
+
+
+/* 아이콘 스타일 */
+.header-icon {
+    position: absolute;
+    top: 18px;           /* 헤더의 상단에서 위치 설정 */
+    left: 50px;          /* 왼쪽에 배치 */
+    font-size: 100px;     /* 아이콘 크기 설정 */
+    color: #084B8A;        /* 아이콘 색상 */
+}
+
+/* 여행 정보 모아보기 */
+.header-box {
+    display: inline-block;       /* 박스를 내용에 맞게 줄이기 */
+    padding: 10px 20px;          /* 내부 여백 */
+    background-color: #4A84D4;   /* 박스 배경색 */
+    border-radius: 10px;         /* 둥근 모서리 */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 약간의 그림자 */
+}
+
+/* 제목 스타일 (필요하면 추가) */
+.header-box h1 {
+    margin: 0;                   /* 여백 제거 */
+    font-size: 45px;             /* 텍스트 크기 조정 */
+    line-height: 1.2;            /* 줄 간격 조정 */
+}
+
+
+/* 이미지 삽입은 보류 */
+
+
+/* 푸터 */
+footer {
+    background-color: #045FB4;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+}
+
+footer a {
+    color: white;
+    /* text-decoration: none; */
+}
+
+
+/* 메인 섹션 */
+/* 두 섹션을 가로로 배치하기 위해 Flexbox 사용 */
+main {
+    display: flex;               /* Flexbox 레이아웃 활성화 */
+    /*height: 100vh;*/               /* 화면 높이에 맞게 섹션 높이 설정 */
+    background-color: #b2e1f0;
+    border: 2px solid #000000;
+    margin-top: 10px;
+
+
+    width: 90%;                  /* 화면 너비의 80%로 설정 */
+    max-width: 1200px;           /* 최대 너비 1200px로 제한 */
+    margin-left: auto;           /* 좌우 중앙 정렬 */
+    margin-right: auto;          /* 좌우 중앙 정렬 */
+    
+    border-radius: 15px;         /* 모서리 둥글게 설정 */
+    padding: 20px; 
+
+}
+
+#map-container, #info-container {
+    flex: 1;                     /* 두 섹션이 동일한 비율로 가로 공간을 차지하도록 설정 */
+    padding: 10px;
+    box-sizing: border-box;      /* padding을 포함한 전체 크기 계산 */
+}
+
+#map-container {
+    margin-right: 10px;          /* 두 섹션 사이에 여백 추가 */
+}
+
+#map {
+    height: 400px;
+    border: 2px solid #4A84D4;
+    margin: 10px 0;
+}
+
+#info-container {
+    margin-left: 10px;           /* 두 섹션 사이에 여백 추가 */
+}
+
+#info-box {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 5px;
+    border: 2px solid #4A84D4;
+    width: 100%; /* info-box가 부모의 크기를 따르도록 설정 */
+    box-sizing: border-box; /* padding을 포함한 너비 계산 */
+}
+
+#search-input {
+    width: calc(100% - 80px);
+    padding: 8px;
+}
+
+#search-button {
+    padding: 8px;
+    background-color: #264653;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+
+#loading-spinner {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.hidden {
+    display: none;
+}
+
+
+#result-links {
+    margin-top: 15px;
+
+    height: auto; /* 자동 높이로 설정하여 카드들이 넘칠 수 있도록 함 */
+    max-height: 600px; /* 필요에 따라 높이 제한을 설정 (예시로 600px) */
+    overflow-y: auto; /* 세로 스크롤이 필요하면 추가 */
+    padding-right: 10px; /* 스크롤을 위한 여백 */
+    display: flex;
+    flex-wrap: wrap; /* 여러 카드가 줄을 바꿔서 배치될 수 있도록 */
+    justify-content: flex-start; /* 카드들이 왼쪽 정렬되도록 */
+    gap: 15px; /* 카드 간의 간격 */
+}
+
+
+#result-links a {
+    display: block;
+    text-decoration: none;
+    margin: 5px 0;
+}
+
+#result-links a:hover {
+    text-decoration: underline;
+}
+
+
+
+#filter-container {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+#filter-container select,
+#filter-container button {
+    margin-top: 10px;
+    padding: 8px;
+}
+
+#loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+

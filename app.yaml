@@ -1,0 +1,22 @@
+runtime: python39  # Python 3.9을 사용
+entrypoint: gunicorn -b :$PORT app:app  # Gunicorn을 사용해 Flask 앱 실행
+
+instance_class: F2  # 앱 인스턴스 크기 (옵션)
+
+env_variables:
+  FLASK_ENV: 'production'  # 환경 변수 (선택 사항)
+
+  NAVER_CLIENT_ID: "IwiCHTYaP72gNDJZzLKn"
+  NAVER_CLIENT_SECRET: "5WhbnXIWyI"
+
+  
+
+
+handlers:
+  - url: /static
+    static_dir: static
+  - url: /.*
+    script: auto
+
+
+  
