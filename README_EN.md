@@ -77,4 +77,4 @@ Web-Programming/
 
 **Yang Soyeon (양소연)**  
 - GitHub: https://github.com/goatyeon03
-- Email: uaua1595@seoultech.ac.kr
+- Email: uaua1595@naver.com / yangsoyeon1123@gmail.com
